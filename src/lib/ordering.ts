@@ -1,17 +1,21 @@
-import { generateKeyBetween } from 'fractional-indexing'
+import { generateKeyBetween, generateNKeysBetween } from 'fractional-indexing'
 
-/** Position key that sorts after every row in `rows` (rows must be sorted by position). */
-export function keyAfterLast(rows: { position: string }[]): string {
-  const last = rows.length > 0 ? rows[rows.length - 1].position : null
-  return generateKeyBetween(last, null)
-}
+export { generateKeyBetween, generateNKeysBetween }
 
 /**
- * Position key for moving a row to index `toIndex` within `sorted`
- * (the array without the moving row).
+ * ASCII compare for fractional-index keys. Always sort client-side with
+ * this: Postgres' default collation orders mixed-case keys differently
+ * than the byte order the keys require.
  */
-export function keyAtIndex(sorted: { position: string }[], toIndex: number): string {
-  const before = toIndex > 0 ? sorted[toIndex - 1].position : null
-  const after = toIndex < sorted.length ? sorted[toIndex].position : null
-  return generateKeyBetween(before, after)
+export function byPosition(a: { position: string }, b: { position: string }): number {
+  return a.position < b.position ? -1 : a.position > b.position ? 1 : 0
+}
+
+/** Position key that sorts after every row in `rows` (any order). */
+export function keyAfterLast(rows: { position: string }[]): string {
+  let last: string | null = null
+  for (const row of rows) {
+    if (last === null || row.position > last) last = row.position
+  }
+  return generateKeyBetween(last, null)
 }

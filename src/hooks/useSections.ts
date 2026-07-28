@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { keyAfterLast, keyAtIndex } from '../lib/ordering'
+import { byPosition, generateKeyBetween, generateNKeysBetween, keyAfterLast } from '../lib/ordering'
 import type { Section } from '../lib/types'
 import { useHouseholdId } from './useAuth'
 
@@ -13,9 +13,8 @@ export function useSections(storeId: string) {
         .from('sections')
         .select('*')
         .eq('store_id', storeId)
-        .order('position')
       if (error) throw error
-      return data as Section[]
+      return (data as Section[]).sort(byPosition)
     },
   })
 }
@@ -25,13 +24,18 @@ export function useAddSection(storeId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (name: string) => {
-      const existing =
-        queryClient.getQueryData<Section[]>(['sections', storeId]) ?? []
+      // Read current positions from the server, not the cache — rapid adds
+      // against a stale cache used to mint duplicate keys.
+      const { data: rows, error: posError } = await supabase
+        .from('sections')
+        .select('position')
+        .eq('store_id', storeId)
+      if (posError) throw posError
       const { error } = await supabase.from('sections').insert({
         household_id: householdId,
         store_id: storeId,
         name,
-        position: keyAfterLast(existing),
+        position: keyAfterLast(rows),
       })
       if (error) throw error
     },
@@ -65,29 +69,49 @@ export function useDeleteSection(storeId: string) {
   })
 }
 
-/** Move a section to a new index in walking order; optimistic. */
+export interface MoveSectionArgs {
+  movedId: string
+  /** The full section list in its new walking order. */
+  newOrder: Section[]
+}
+
+/** Persist a drag-reorder; optimistic. Self-repairs bad position keys. */
 export function useMoveSection(storeId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, toIndex }: { id: string; toIndex: number }) => {
-      const sections =
-        queryClient.getQueryData<Section[]>(['sections', storeId]) ?? []
-      const rest = sections.filter((s) => s.id !== id)
-      const position = keyAtIndex(rest, toIndex)
-      const { error } = await supabase.from('sections').update({ position }).eq('id', id)
-      if (error) throw error
+    mutationFn: async ({ movedId, newOrder }: MoveSectionArgs) => {
+      const index = newOrder.findIndex((s) => s.id === movedId)
+      const before = index > 0 ? newOrder[index - 1].position : null
+      const after = index < newOrder.length - 1 ? newOrder[index + 1].position : null
+
+      const otherKeys = newOrder.filter((s) => s.id !== movedId).map((s) => s.position)
+      const hasDuplicates = new Set(otherKeys).size !== otherKeys.length
+      const neighborsOrdered = before === null || after === null || before < after
+
+      if (!hasDuplicates && neighborsOrdered) {
+        const { error } = await supabase
+          .from('sections')
+          .update({ position: generateKeyBetween(before, after) })
+          .eq('id', movedId)
+        if (error) throw error
+        return
+      }
+
+      // Keys are duplicated or out of order (possible from older app
+      // versions): rewrite every section's key in the new order.
+      const keys = generateNKeysBetween(null, null, newOrder.length)
+      const results = await Promise.all(
+        newOrder.map((section, i) =>
+          supabase.from('sections').update({ position: keys[i] }).eq('id', section.id),
+        ),
+      )
+      const failed = results.find((r) => r.error)
+      if (failed?.error) throw failed.error
     },
-    onMutate: async ({ id, toIndex }) => {
+    onMutate: async ({ newOrder }) => {
       await queryClient.cancelQueries({ queryKey: ['sections', storeId] })
       const prev = queryClient.getQueryData<Section[]>(['sections', storeId])
-      if (prev) {
-        const rest = prev.filter((s) => s.id !== id)
-        const moving = prev.find((s) => s.id === id)!
-        const position = keyAtIndex(rest, toIndex)
-        const next = [...rest]
-        next.splice(toIndex, 0, { ...moving, position })
-        queryClient.setQueryData(['sections', storeId], next)
-      }
+      queryClient.setQueryData(['sections', storeId], newOrder)
       return { prev }
     },
     onError: (_err, _vars, ctx) => {

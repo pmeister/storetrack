@@ -9,7 +9,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import {
   useAddSection,
   useDeleteSection,
@@ -39,13 +39,13 @@ export default function SectionsScreen() {
   function onDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id || !sections.data) return
-    const rest = sections.data.filter((s) => s.id !== active.id)
-    const toIndex = rest.findIndex((s) => s.id === over.id)
-    const overIndex = sections.data.findIndex((s) => s.id === over.id)
-    const activeIndex = sections.data.findIndex((s) => s.id === active.id)
-    // dropping below the over-row when dragging downward
-    const insertAt = activeIndex < overIndex ? toIndex + 1 : toIndex
-    moveSection.mutate({ id: String(active.id), toIndex: insertAt })
+    const oldIndex = sections.data.findIndex((s) => s.id === active.id)
+    const newIndex = sections.data.findIndex((s) => s.id === over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+    moveSection.mutate({
+      movedId: String(active.id),
+      newOrder: arrayMove(sections.data, oldIndex, newIndex),
+    })
   }
 
   return (

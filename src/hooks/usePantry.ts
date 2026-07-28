@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { generateKeyBetween } from 'fractional-indexing'
+import { keyAfterLast } from '../lib/ordering'
 import type { ListItem, PantryItem } from '../lib/types'
 import { useHouseholdId } from './useAuth'
 
@@ -148,14 +148,12 @@ export function useAddPantryItemToList() {
       if (existingError) throw existingError
       if (existing.length > 0) return 'already-listed'
 
-      const { data: lastRows, error: lastError } = await supabase
+      const { data: rows, error: posError } = await supabase
         .from('list_items')
         .select('position')
         .eq('store_id', storeId)
-        .order('position', { ascending: false })
-        .limit(1)
-      if (lastError) throw lastError
-      const position = generateKeyBetween(lastRows[0]?.position ?? null, null)
+      if (posError) throw posError
+      const position = keyAfterLast(rows)
 
       const { error } = await supabase.from('list_items').insert({
         household_id: item.household_id,

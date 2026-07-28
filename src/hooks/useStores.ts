@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { keyAfterLast } from '../lib/ordering'
+import { byPosition, keyAfterLast } from '../lib/ordering'
 import type { ListItem, Store } from '../lib/types'
 import { useHouseholdId } from './useAuth'
 
@@ -9,9 +9,9 @@ export function useStores() {
   return useQuery({
     queryKey: ['stores', householdId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('stores').select('*').order('position')
+      const { data, error } = await supabase.from('stores').select('*')
       if (error) throw error
-      return data as Store[]
+      return (data as Store[]).sort(byPosition)
     },
   })
 }
@@ -41,12 +41,12 @@ export function useAddStore() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (name: string) => {
-      const existing =
-        queryClient.getQueryData<Store[]>(['stores', householdId]) ?? []
+      const { data: rows, error: posError } = await supabase.from('stores').select('position')
+      if (posError) throw posError
       const { error } = await supabase.from('stores').insert({
         household_id: householdId,
         name,
-        position: keyAfterLast(existing),
+        position: keyAfterLast(rows),
       })
       if (error) throw error
     },

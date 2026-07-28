@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { keyAfterLast } from '../lib/ordering'
+import { byPosition, keyAfterLast } from '../lib/ordering'
 import type { ListItem } from '../lib/types'
 
 export function useListItems(storeId: string) {
@@ -11,9 +11,8 @@ export function useListItems(storeId: string) {
         .from('list_items')
         .select('*')
         .eq('store_id', storeId)
-        .order('position')
       if (error) throw error
-      return data as ListItem[]
+      return (data as ListItem[]).sort(byPosition)
     },
   })
 }
@@ -64,9 +63,7 @@ export function buildListItem(
   existing: ListItem[],
   input: NewListItem,
 ): ListItem {
-  const inSection = existing
-    .filter((i) => i.section_id === input.sectionId)
-    .sort((a, b) => (a.position < b.position ? -1 : 1))
+  const inSection = existing.filter((i) => i.section_id === input.sectionId)
   return {
     id: crypto.randomUUID(),
     household_id: householdId,
@@ -130,9 +127,7 @@ export function useMoveListItem(storeId: string) {
   return useMutation({
     mutationFn: async ({ id, sectionId }: { id: string; sectionId: string | null }) => {
       const items = queryClient.getQueryData<ListItem[]>(['list_items', storeId]) ?? []
-      const inTarget = items
-        .filter((i) => i.section_id === sectionId && i.id !== id)
-        .sort((a, b) => (a.position < b.position ? -1 : 1))
+      const inTarget = items.filter((i) => i.section_id === sectionId && i.id !== id)
       const { error } = await supabase
         .from('list_items')
         .update({ section_id: sectionId, position: keyAfterLast(inTarget) })

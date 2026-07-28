@@ -6,7 +6,6 @@ const TABLE_TO_KEY: Record<string, string> = {
   stores: 'stores',
   sections: 'sections',
   list_items: 'list_items',
-  pantry_items: 'pantry',
 }
 
 /**

@@ -7,7 +7,6 @@ import OnboardingScreen from './screens/OnboardingScreen'
 import StoresScreen from './screens/StoresScreen'
 import StoreChecklistScreen from './screens/StoreChecklistScreen'
 import SectionsScreen from './screens/SectionsScreen'
-import PantryScreen from './screens/PantryScreen'
 import SettingsScreen from './screens/SettingsScreen'
 import TabBar from './components/TabBar'
 
@@ -43,7 +42,6 @@ function Shell({ householdId }: { householdId: string }) {
         <Route path="/" element={<StoresScreen />} />
         <Route path="/stores/:storeId" element={<StoreChecklistScreen />} />
         <Route path="/stores/:storeId/sections" element={<SectionsScreen />} />
-        <Route path="/pantry" element={<PantryScreen />} />
         <Route path="/settings" element={<SettingsScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

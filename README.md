@@ -1,8 +1,8 @@
 # StoreTrack
 
 Shopping lists organized by store — with each store's checklist grouped into
-sections that match how you walk it — plus a shared home pantry. Built as a
-PWA: runs in the browser and installs to an Android home screen.
+sections that match how you walk it. Built as a PWA: runs in the browser and
+installs to an Android or iPhone home screen.
 
 - **Stores** — each store has its own list and its own sections ("Produce",
   "Aisle 2", …), drag-reorderable into walking order.
@@ -10,11 +10,11 @@ PWA: runs in the browser and installs to an Android home screen.
   "In cart" group where they can be unchecked one at a time or all at once
   for the next trip. Each item's ⋯ menu offers rename, move to section,
   and delete.
-- **Pantry** — a simple list of staples you buy again and again; one tap
-  pushes an item onto a store's shopping list (it remembers each item's
-  usual store and section).
 - **Household** — everyone who joins with your invite code shares the same
-  stores, lists, and pantry, live via Supabase Realtime.
+  stores and lists, live via Supabase Realtime.
+
+A pantry/staples feature existed briefly and was removed pending a redesign;
+its tables (`pantry_items`, `list_items.pantry_item_id`) remain in the schema.
 
 ## Stack
 

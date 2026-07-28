@@ -5,12 +5,10 @@ interface Props {
   title: string
   items: ListItem[]
   onToggle: (item: ListItem) => void
-  onDelete: (item: ListItem) => void
-  onRename: (item: ListItem) => void
-  onMove?: (item: ListItem) => void
+  onActions: (item: ListItem) => void
 }
 
-export default function SectionGroup({ title, items, onToggle, onDelete, onRename, onMove }: Props) {
+export default function SectionGroup({ title, items, onToggle, onActions }: Props) {
   if (items.length === 0) return null
   return (
     <section>
@@ -19,14 +17,7 @@ export default function SectionGroup({ title, items, onToggle, onDelete, onRenam
       </h2>
       <ul className="divide-y divide-slate-100 border-y border-slate-100">
         {items.map((item) => (
-          <ChecklistItem
-            key={item.id}
-            item={item}
-            onToggle={onToggle}
-            onDelete={onDelete}
-            onRename={onRename}
-            onMove={onMove}
-          />
+          <ChecklistItem key={item.id} item={item} onToggle={onToggle} onActions={onActions} />
         ))}
       </ul>
     </section>

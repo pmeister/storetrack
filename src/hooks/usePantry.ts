@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { generateKeyBetween } from 'fractional-indexing'
-import type { PantryItem } from '../lib/types'
+import type { ListItem, PantryItem } from '../lib/types'
 import { useHouseholdId } from './useAuth'
 
 export function needsRestock(item: PantryItem): boolean {
@@ -71,6 +71,56 @@ export function useDeletePantryItem() {
       if (error) throw error
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['pantry'] }),
+  })
+}
+
+/**
+ * Start tracking a shopping-list item in the pantry. Links to an existing
+ * pantry item with the same name if there is one, otherwise creates one
+ * (quantity 0, defaulting to this store/section for future restocks).
+ */
+export function useTrackInPantry() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (item: ListItem) => {
+      if (item.pantry_item_id) return 'already-tracked'
+
+      const { data: existing, error: existingError } = await supabase
+        .from('pantry_items')
+        .select('id')
+        .ilike('name', item.name)
+        .limit(1)
+      if (existingError) throw existingError
+
+      let pantryId = existing[0]?.id as string | undefined
+      if (!pantryId) {
+        const { data, error } = await supabase
+          .from('pantry_items')
+          .insert({
+            household_id: item.household_id,
+            name: item.name,
+            quantity: 0,
+            restock_threshold: 1,
+            default_store_id: item.store_id,
+            default_section_id: item.section_id,
+          })
+          .select('id')
+          .single()
+        if (error) throw error
+        pantryId = data.id
+      }
+
+      const { error: linkError } = await supabase
+        .from('list_items')
+        .update({ pantry_item_id: pantryId })
+        .eq('id', item.id)
+      if (linkError) throw linkError
+      return 'tracked'
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['pantry'] })
+      queryClient.invalidateQueries({ queryKey: ['list_items'] })
+    },
   })
 }
 

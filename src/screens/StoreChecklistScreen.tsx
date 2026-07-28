@@ -5,13 +5,14 @@ import { useSections } from '../hooks/useSections'
 import {
   buildListItem,
   useAddListItem,
-  useCompleteTrip,
   useDeleteListItem,
   useListItems,
   useMoveListItem,
   useRenameListItem,
   useToggleListItem,
+  useUncheckAll,
 } from '../hooks/useListItems'
+import { useTrackInPantry } from '../hooks/usePantry'
 import { useHouseholdId } from '../hooks/useAuth'
 import type { ListItem } from '../lib/types'
 import SectionGroup from '../components/SectionGroup'
@@ -30,10 +31,11 @@ export default function StoreChecklistScreen() {
   const deleteItem = useDeleteListItem(storeId!)
   const renameItem = useRenameListItem(storeId!)
   const moveItem = useMoveListItem(storeId!)
-  const completeTrip = useCompleteTrip(storeId!)
+  const uncheckAll = useUncheckAll(storeId!)
+  const trackInPantry = useTrackInPantry()
   const deleteStore = useDeleteStore()
   const renameStore = useRenameStore()
-  const [cartOpen, setCartOpen] = useState(false)
+  const [actionItem, setActionItem] = useState<ListItem | null>(null)
   const [movingItem, setMovingItem] = useState<ListItem | null>(null)
 
   const store = stores.data?.find((s) => s.id === storeId)
@@ -47,13 +49,6 @@ export default function StoreChecklistScreen() {
   }
 
   const onToggle = (item: ListItem) => toggleItem.mutate({ id: item.id, checked: !item.checked })
-  const onDelete = (item: ListItem) => deleteItem.mutate(item.id)
-  const onRename = (item: ListItem) => {
-    const next = prompt('Rename item', item.name)
-    if (next?.trim() && next.trim() !== item.name) {
-      renameItem.mutate({ id: item.id, name: next.trim() })
-    }
-  }
 
   return (
     <div className="pb-40 pt-4">
@@ -116,54 +111,102 @@ export default function StoreChecklistScreen() {
               title={section.name}
               items={bySection.get(section.id) ?? []}
               onToggle={onToggle}
-              onDelete={onDelete}
-              onRename={onRename}
-              onMove={setMovingItem}
+              onActions={setActionItem}
             />
           ))}
           <SectionGroup
             title="Unsorted"
             items={bySection.get(null) ?? []}
             onToggle={onToggle}
-            onDelete={onDelete}
-            onRename={onRename}
-            onMove={setMovingItem}
+            onActions={setActionItem}
           />
 
           {checked.length > 0 && (
             <section className="mt-6">
-              <button
-                type="button"
-                onClick={() => setCartOpen(!cartOpen)}
-                className="flex w-full items-center justify-between px-4 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400"
-              >
-                <span>In cart ({checked.length})</span>
-                <span>{cartOpen ? '▾' : '▸'}</span>
-              </button>
-              {cartOpen && (
-                <ul className="divide-y divide-slate-100 border-y border-slate-100">
-                  {checked.map((item) => (
-                    <ChecklistItem
-                      key={item.id}
-                      item={item}
-                      onToggle={onToggle}
-                      onDelete={onDelete}
-                      onRename={onRename}
-                    />
-                  ))}
-                </ul>
-              )}
-              <div className="px-4 pt-3">
+              <div className="flex items-center justify-between px-4 py-1">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  In cart ({checked.length})
+                </span>
                 <button
                   type="button"
-                  onClick={() => completeTrip.mutate()}
-                  className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white active:bg-emerald-700"
+                  onClick={() => uncheckAll.mutate()}
+                  className="text-xs font-semibold text-emerald-600"
                 >
-                  Complete trip — clear cart, restock pantry
+                  Uncheck all
                 </button>
               </div>
+              <ul className="divide-y divide-slate-100 border-y border-slate-100">
+                {checked.map((item) => (
+                  <ChecklistItem
+                    key={item.id}
+                    item={item}
+                    onToggle={onToggle}
+                    onActions={setActionItem}
+                  />
+                ))}
+              </ul>
             </section>
           )}
+        </div>
+      )}
+
+      {actionItem && (
+        <div
+          className="fixed inset-0 z-30 flex items-end justify-center bg-black/40"
+          onClick={() => setActionItem(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="truncate font-semibold">{actionItem.name}</h2>
+            <div className="mt-3 space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const next = prompt('Rename item', actionItem.name)
+                  if (next?.trim() && next.trim() !== actionItem.name) {
+                    renameItem.mutate({ id: actionItem.id, name: next.trim() })
+                  }
+                  setActionItem(null)
+                }}
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left font-medium active:bg-slate-50"
+              >
+                Rename
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMovingItem(actionItem)
+                  setActionItem(null)
+                }}
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left font-medium active:bg-slate-50"
+              >
+                Move to section…
+              </button>
+              <button
+                type="button"
+                disabled={!!actionItem.pantry_item_id}
+                onClick={() => {
+                  trackInPantry.mutate(actionItem)
+                  setActionItem(null)
+                }}
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left font-medium active:bg-slate-50 disabled:text-slate-300"
+              >
+                {actionItem.pantry_item_id ? 'Already in pantry ◆' : 'Add to pantry'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  deleteItem.mutate(actionItem.id)
+                  setActionItem(null)
+                }}
+                className="w-full rounded-xl border border-red-200 px-4 py-3 text-left font-medium text-red-600 active:bg-red-50"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

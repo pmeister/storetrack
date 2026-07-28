@@ -148,31 +148,6 @@ begin
   return v_id;
 end $$;
 
--- Completes a shopping trip: checked items linked to pantry items bump the
--- pantry quantity, then all checked items for the store are removed.
-create or replace function complete_trip(p_store_id uuid) returns void
-language plpgsql security definer set search_path = public as $$
-begin
-  if not exists (
-    select 1 from stores
-    where id = p_store_id and household_id = current_household_id()
-  ) then
-    raise exception 'store not found';
-  end if;
-
-  update pantry_items p
-  set quantity = p.quantity + bought.qty
-  from (
-    select pantry_item_id, sum(quantity) as qty
-    from list_items
-    where store_id = p_store_id and checked and pantry_item_id is not null
-    group by pantry_item_id
-  ) bought
-  where p.id = bought.pantry_item_id;
-
-  delete from list_items where store_id = p_store_id and checked;
-end $$;
-
 -- ============================================================ profile trigger
 
 create or replace function handle_new_user() returns trigger

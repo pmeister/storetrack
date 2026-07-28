@@ -3,12 +3,10 @@ import type { ListItem } from '../lib/types'
 interface Props {
   item: ListItem
   onToggle: (item: ListItem) => void
-  onDelete: (item: ListItem) => void
-  onRename: (item: ListItem) => void
-  onMove?: (item: ListItem) => void
+  onActions: (item: ListItem) => void
 }
 
-export default function ChecklistItem({ item, onToggle, onDelete, onRename, onMove }: Props) {
+export default function ChecklistItem({ item, onToggle, onActions }: Props) {
   return (
     <li className="flex items-center gap-3 bg-white px-4 py-1">
       <button
@@ -32,46 +30,23 @@ export default function ChecklistItem({ item, onToggle, onDelete, onRename, onMo
           {item.quantity > 1 && (
             <span className="ml-2 text-sm font-medium text-slate-400">×{item.quantity}</span>
           )}
+          {item.pantry_item_id && (
+            <span className="ml-2 align-middle text-xs text-emerald-500" title="Tracked in pantry">
+              ◆
+            </span>
+          )}
         </span>
       </button>
-      {onMove && (
-        <button
-          type="button"
-          onClick={() => onMove(item)}
-          className="p-2 text-slate-300 active:text-emerald-600"
-          aria-label={`Move ${item.name} to another section`}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
-            />
-          </svg>
-        </button>
-      )}
       <button
         type="button"
-        onClick={() => onRename(item)}
-        className="p-2 text-slate-300 active:text-emerald-600"
-        aria-label={`Rename ${item.name}`}
+        onClick={() => onActions(item)}
+        className="p-2 text-slate-300 active:text-slate-500"
+        aria-label={`Actions for ${item.name}`}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m16.86 4.49 1.65-1.65a1.88 1.88 0 1 1 2.65 2.65L7.83 18.82a4.5 4.5 0 0 1-1.9 1.13L3 20.75l.8-2.93a4.5 4.5 0 0 1 1.13-1.9L16.86 4.49Zm0 0 2.65 2.65"
-          />
-        </svg>
-      </button>
-      <button
-        type="button"
-        onClick={() => onDelete(item)}
-        className="p-2 text-slate-300 active:text-red-500"
-        aria-label={`Delete ${item.name}`}
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+        <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+          <circle cx="5" cy="12" r="1.8" />
+          <circle cx="12" cy="12" r="1.8" />
+          <circle cx="19" cy="12" r="1.8" />
         </svg>
       </button>
     </li>

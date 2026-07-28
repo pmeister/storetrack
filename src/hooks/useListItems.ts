@@ -176,28 +176,29 @@ export function useDeleteListItem(storeId: string) {
   })
 }
 
-/** Move a checked-off item's quantities into the pantry and clear the cart. */
-export function useCompleteTrip(storeId: string) {
+/** Uncheck every checked item for the store, resetting the list for the next trip. */
+export function useUncheckAll(storeId: string) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc('complete_trip', { p_store_id: storeId })
+      const { error } = await supabase
+        .from('list_items')
+        .update({ checked: false })
+        .eq('store_id', storeId)
+        .eq('checked', true)
       if (error) throw error
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ['list_items', storeId] })
       const prev = queryClient.getQueryData<ListItem[]>(['list_items', storeId])
       queryClient.setQueryData<ListItem[]>(['list_items', storeId], (old) =>
-        old?.filter((i) => !i.checked),
+        old?.map((i) => ({ ...i, checked: false })),
       )
       return { prev }
     },
     onError: (_err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(['list_items', storeId], ctx.prev)
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['list_items'] })
-      queryClient.invalidateQueries({ queryKey: ['pantry'] })
-    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['list_items'] }),
   })
 }

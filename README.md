@@ -7,10 +7,12 @@ PWA: runs in the browser and installs to an Android home screen.
 - **Stores** — each store has its own list and its own sections ("Produce",
   "Aisle 2", …), drag-reorderable into walking order.
 - **Shopping** — items are grouped by section; checked items sink into an
-  "In cart" group. **Complete trip** clears the cart and bumps pantry
-  quantities for linked items.
+  "In cart" group where they can be unchecked one at a time or all at once
+  for the next trip. Each item's ⋯ menu offers rename, move to section,
+  add to pantry, and delete.
 - **Pantry** — quantities and restock thresholds; low items can be pushed onto
-  a store's list (it remembers each item's usual store and section).
+  a store's list (it remembers each item's usual store and section), and list
+  items can be added to the pantry from their ⋯ menu.
 - **Household** — everyone who joins with your invite code shares the same
   stores, lists, and pantry, live via Supabase Realtime.
 

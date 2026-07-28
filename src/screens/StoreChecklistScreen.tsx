@@ -122,7 +122,7 @@ export default function StoreChecklistScreen() {
           {checked.length > 0 && (
             <section className="mt-6">
               <div className="flex items-center justify-between px-4 py-1">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <span className="text-base font-bold text-slate-700">
                   In cart ({checked.length})
                 </span>
                 <button

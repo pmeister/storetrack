@@ -12,7 +12,7 @@ export default function SectionGroup({ title, items, onToggle, onActions }: Prop
   if (items.length === 0) return null
   return (
     <section>
-      <h2 className="px-4 pb-1 pt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <h2 className="px-4 pb-1.5 pt-5 text-base font-bold text-slate-700">
         {title}
       </h2>
       <ul className="divide-y divide-slate-100 border-y border-slate-100">

@@ -22,7 +22,7 @@ export default function SortableRow({ id, children }: Props) {
         type="button"
         {...attributes}
         {...listeners}
-        className="touch-none p-2 text-slate-300"
+        className="touch-none p-2 text-slate-500"
         aria-label="Drag to reorder"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">

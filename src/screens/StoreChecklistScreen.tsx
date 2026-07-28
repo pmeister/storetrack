@@ -84,7 +84,7 @@ export default function StoreChecklistScreen() {
               deleteStore.mutate(storeId!, { onSuccess: () => navigate('/') })
             }
           }}
-          className="p-1.5 text-slate-300 active:text-red-500"
+          className="p-1.5 text-slate-500 active:text-red-500"
           aria-label="Delete store"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">

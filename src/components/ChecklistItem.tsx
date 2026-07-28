@@ -40,7 +40,7 @@ export default function ChecklistItem({ item, onToggle, onActions }: Props) {
       <button
         type="button"
         onClick={() => onActions(item)}
-        className="p-2 text-slate-300 active:text-slate-500"
+        className="p-2 text-slate-500 active:text-slate-700"
         aria-label={`Actions for ${item.name}`}
       >
         <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">

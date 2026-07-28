@@ -95,7 +95,7 @@ export default function SectionsScreen() {
                       deleteSection.mutate(section.id)
                     }
                   }}
-                  className="p-2 text-slate-300 active:text-red-500"
+                  className="p-2 text-slate-500 active:text-red-500"
                   aria-label={`Delete ${section.name}`}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} className="h-5 w-5">

@@ -149,19 +149,19 @@ export default function StoreChecklistScreen() {
 
           {checked.length > 0 && (
             <section className="mt-6">
-              <div className="flex items-center justify-between px-4 py-1">
-                <span className="text-base font-bold text-slate-700">
+              <div className="flex items-center justify-between border-y border-emerald-100 bg-emerald-50 px-4 py-2">
+                <span className="text-base font-bold text-emerald-900">
                   Checked ({checked.length})
                 </span>
                 <button
                   type="button"
                   onClick={() => uncheckAll.mutate()}
-                  className="text-xs font-semibold text-emerald-600"
+                  className="text-xs font-semibold text-emerald-700"
                 >
                   Uncheck all
                 </button>
               </div>
-              <ul className="divide-y divide-slate-100 border-y border-slate-100">
+              <ul className="divide-y divide-slate-100 border-b border-slate-100">
                 {checked.map((item) => (
                   <ChecklistItem
                     key={item.id}

@@ -57,10 +57,8 @@ export default function StoreChecklistScreen() {
   const onToggle = (item: ListItem) => toggleItem.mutate({ id: item.id, checked: !item.checked })
 
   function handleAdd(rawName: string, sectionId: string | null) {
-    const trimmed = rawName.trim()
-    if (!trimmed) return
-    // mobile keyboards auto-capitalize; item names default to lowercase
-    const name = trimmed[0].toLowerCase() + trimmed.slice(1)
+    const name = rawName.trim()
+    if (!name) return
 
     const duplicate = (items.data ?? []).find(
       (i) => i.name.trim().toLowerCase() === name.toLowerCase(),

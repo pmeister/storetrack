@@ -7,9 +7,10 @@ interface Props {
   onToggle: (item: ListItem) => void
   onDelete: (item: ListItem) => void
   onRename: (item: ListItem) => void
+  onMove?: (item: ListItem) => void
 }
 
-export default function SectionGroup({ title, items, onToggle, onDelete, onRename }: Props) {
+export default function SectionGroup({ title, items, onToggle, onDelete, onRename, onMove }: Props) {
   if (items.length === 0) return null
   return (
     <section>
@@ -24,6 +25,7 @@ export default function SectionGroup({ title, items, onToggle, onDelete, onRenam
             onToggle={onToggle}
             onDelete={onDelete}
             onRename={onRename}
+            onMove={onMove}
           />
         ))}
       </ul>

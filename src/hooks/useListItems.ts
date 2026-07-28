@@ -124,6 +124,36 @@ export function useRenameListItem(storeId: string) {
   })
 }
 
+/** Reassign an item to a section (null = Unsorted), appended at that section's end. */
+export function useMoveListItem(storeId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, sectionId }: { id: string; sectionId: string | null }) => {
+      const items = queryClient.getQueryData<ListItem[]>(['list_items', storeId]) ?? []
+      const inTarget = items
+        .filter((i) => i.section_id === sectionId && i.id !== id)
+        .sort((a, b) => (a.position < b.position ? -1 : 1))
+      const { error } = await supabase
+        .from('list_items')
+        .update({ section_id: sectionId, position: keyAfterLast(inTarget) })
+        .eq('id', id)
+      if (error) throw error
+    },
+    onMutate: async ({ id, sectionId }) => {
+      await queryClient.cancelQueries({ queryKey: ['list_items', storeId] })
+      const prev = queryClient.getQueryData<ListItem[]>(['list_items', storeId])
+      queryClient.setQueryData<ListItem[]>(['list_items', storeId], (old) =>
+        old?.map((i) => (i.id === id ? { ...i, section_id: sectionId } : i)),
+      )
+      return { prev }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['list_items', storeId], ctx.prev)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['list_items'] }),
+  })
+}
+
 export function useDeleteListItem(storeId: string) {
   const queryClient = useQueryClient()
   return useMutation({

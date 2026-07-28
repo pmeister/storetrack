@@ -8,6 +8,7 @@ import {
   useCompleteTrip,
   useDeleteListItem,
   useListItems,
+  useMoveListItem,
   useRenameListItem,
   useToggleListItem,
 } from '../hooks/useListItems'
@@ -28,10 +29,12 @@ export default function StoreChecklistScreen() {
   const toggleItem = useToggleListItem(storeId!)
   const deleteItem = useDeleteListItem(storeId!)
   const renameItem = useRenameListItem(storeId!)
+  const moveItem = useMoveListItem(storeId!)
   const completeTrip = useCompleteTrip(storeId!)
   const deleteStore = useDeleteStore()
   const renameStore = useRenameStore()
   const [cartOpen, setCartOpen] = useState(false)
+  const [movingItem, setMovingItem] = useState<ListItem | null>(null)
 
   const store = stores.data?.find((s) => s.id === storeId)
   const unchecked = (items.data ?? []).filter((i) => !i.checked)
@@ -115,6 +118,7 @@ export default function StoreChecklistScreen() {
               onToggle={onToggle}
               onDelete={onDelete}
               onRename={onRename}
+              onMove={setMovingItem}
             />
           ))}
           <SectionGroup
@@ -123,6 +127,7 @@ export default function StoreChecklistScreen() {
             onToggle={onToggle}
             onDelete={onDelete}
             onRename={onRename}
+            onMove={setMovingItem}
           />
 
           {checked.length > 0 && (
@@ -159,6 +164,41 @@ export default function StoreChecklistScreen() {
               </div>
             </section>
           )}
+        </div>
+      )}
+
+      {movingItem && (
+        <div
+          className="fixed inset-0 z-30 flex items-end justify-center bg-black/40"
+          onClick={() => setMovingItem(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-t-3xl bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="font-semibold">Move “{movingItem.name}” to…</h2>
+            <ul className="mt-3 max-h-72 space-y-2 overflow-y-auto">
+              {[
+                { id: null as string | null, name: 'Unsorted' },
+                ...(sections.data ?? []),
+              ]
+                .filter((section) => section.id !== movingItem.section_id)
+                .map((section) => (
+                  <li key={section.id ?? 'unsorted'}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        moveItem.mutate({ id: movingItem.id, sectionId: section.id })
+                        setMovingItem(null)
+                      }}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left font-medium active:bg-slate-50"
+                    >
+                      {section.name}
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </div>
         </div>
       )}
 

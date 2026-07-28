@@ -151,7 +151,7 @@ export default function PantryScreen() {
                     onClick={() => {
                       if (confirm(`Remove ${item.name} from pantry?`)) deleteItem.mutate(item.id)
                     }}
-                    className="text-slate-300 active:text-red-500"
+                    className="font-semibold text-red-400 active:text-red-600"
                   >
                     Remove
                   </button>

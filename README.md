@@ -52,6 +52,22 @@ variables. Then install it on a phone:
 - **iPhone**: open the URL in **Safari** (installing only works from Safari) →
   Share button → **Add to Home Screen**.
 
+## Kafka change stream (optional)
+
+Every insert/update/delete on `stores`, `sections`, and `list_items` is
+streamed to a Confluent Cloud topic (`storetrack.changes`), keyed by
+`table:row-id`:
+
+    Supabase trigger (supabase/webhooks.sql)
+      → POST /api/kafka-webhook on Vercel (secret-gated)
+        → Confluent Kafka REST API produce
+
+Setup: create the topic and a cluster API key in Confluent (granular access;
+one ACL — Write on the topic, literal match), set
+`CONFLUENT_REST_ENDPOINT`, `CONFLUENT_CLUSTER_ID`, `CONFLUENT_API_KEY`,
+`CONFLUENT_API_SECRET`, and `WEBHOOK_SECRET` in Vercel, then run
+`supabase/webhooks.sql` (placeholders filled in) in the Supabase SQL Editor.
+
 ## Offline behavior
 
 The app shell is precached, and the query cache is persisted to localStorage,

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   needsRestock,
   useAddPantryItem,
@@ -22,17 +22,41 @@ export default function PantryScreen() {
   const [name, setName] = useState('')
   const [restockOnly, setRestockOnly] = useState(false)
   const [pickerItem, setPickerItem] = useState<PantryItem | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const items = (pantry.data ?? []).filter((i) => !restockOnly || needsRestock(i))
   const needed = (pantry.data ?? []).filter(needsRestock)
 
+  function showNotice(message: string) {
+    setNotice(message)
+    clearTimeout(noticeTimer.current)
+    noticeTimer.current = setTimeout(() => setNotice(null), 2500)
+  }
+
+  function addWithFeedback(item: PantryItem, storeId: string, sectionId: string | null) {
+    addToList.mutate(
+      { item, storeId, sectionId },
+      {
+        onSuccess: ({ status, storeId: resultStoreId }) => {
+          const storeName =
+            stores.data?.find((s) => s.id === resultStoreId)?.name ?? 'the list'
+          if (status === 'already-listed') {
+            showNotice(`${item.name} is already on the ${storeName} list`)
+          } else if (status === 'restored') {
+            showNotice(`${item.name} moved from cart back onto the ${storeName} list`)
+          } else {
+            showNotice(`${item.name} added to the ${storeName} list`)
+          }
+        },
+        onError: (error) => showNotice(`Couldn't add ${item.name}: ${error.message}`),
+      },
+    )
+  }
+
   function sendToList(item: PantryItem) {
     if (item.default_store_id) {
-      addToList.mutate({
-        item,
-        storeId: item.default_store_id,
-        sectionId: item.default_section_id,
-      })
+      addWithFeedback(item, item.default_store_id, item.default_section_id)
     } else {
       setPickerItem(item)
     }
@@ -163,12 +187,20 @@ export default function PantryScreen() {
         </button>
       </form>
 
+      {notice && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4">
+          <p className="rounded-full bg-slate-900/90 px-4 py-2 text-sm text-white shadow-lg">
+            {notice}
+          </p>
+        </div>
+      )}
+
       {pickerItem && (
         <StorePicker
           item={pickerItem}
           storeIds={stores.data?.map((s) => ({ id: s.id, name: s.name })) ?? []}
           onPick={(storeId, sectionId) => {
-            addToList.mutate({ item: pickerItem, storeId, sectionId })
+            addWithFeedback(pickerItem, storeId, sectionId)
             setPickerItem(null)
           }}
           onClose={() => setPickerItem(null)}

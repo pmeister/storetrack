@@ -62,6 +62,7 @@ export default function QuickAddBar({ sections, onAdd }: Props) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Add an item…"
             enterKeyHint="done"
+            autoCapitalize="none"
             className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-emerald-500"
           />
           <button

@@ -6,10 +6,11 @@ installs to an Android or iPhone home screen.
 
 - **Stores** — each store has its own list and its own sections ("Produce",
   "Aisle 2", …), drag-reorderable into walking order.
-- **Shopping** — items are grouped by section; checked items sink into an
-  "In cart" group where they can be unchecked one at a time or all at once
-  for the next trip. Each item's ⋯ menu offers rename, move to section,
-  and delete.
+- **Shopping** — items are grouped by section; checked items sink into a
+  "Checked" group where they can be unchecked one at a time or all at once
+  for the next trip. Duplicate names (case-insensitive) are prevented —
+  re-adding a checked item moves it back onto the list. Each item's ⋯ menu
+  offers rename, move to section, and delete.
 - **Household** — everyone who joins with your invite code shares the same
   stores and lists, live via Supabase Realtime.
 

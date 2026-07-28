@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useStores, useDeleteStore, useRenameStore } from '../hooks/useStores'
 import { useSections } from '../hooks/useSections'
 import {
@@ -35,6 +35,14 @@ export default function StoreChecklistScreen() {
   const renameStore = useRenameStore()
   const [actionItem, setActionItem] = useState<ListItem | null>(null)
   const [movingItem, setMovingItem] = useState<ListItem | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  function showNotice(message: string) {
+    setNotice(message)
+    clearTimeout(noticeTimer.current)
+    noticeTimer.current = setTimeout(() => setNotice(null), 2500)
+  }
 
   const store = stores.data?.find((s) => s.id === storeId)
   const unchecked = (items.data ?? []).filter((i) => !i.checked)
@@ -47,6 +55,28 @@ export default function StoreChecklistScreen() {
   }
 
   const onToggle = (item: ListItem) => toggleItem.mutate({ id: item.id, checked: !item.checked })
+
+  function handleAdd(rawName: string, sectionId: string | null) {
+    const trimmed = rawName.trim()
+    if (!trimmed) return
+    // mobile keyboards auto-capitalize; item names default to lowercase
+    const name = trimmed[0].toLowerCase() + trimmed.slice(1)
+
+    const duplicate = (items.data ?? []).find(
+      (i) => i.name.trim().toLowerCase() === name.toLowerCase(),
+    )
+    if (duplicate) {
+      if (duplicate.checked) {
+        toggleItem.mutate({ id: duplicate.id, checked: false })
+        showNotice(`${duplicate.name} moved back onto the list`)
+      } else {
+        showNotice(`${duplicate.name} is already on the list`)
+      }
+      return
+    }
+
+    addItem.mutate(buildListItem(householdId, storeId!, items.data ?? [], { name, sectionId }))
+  }
 
   return (
     <div className="pb-40 pt-4">
@@ -123,7 +153,7 @@ export default function StoreChecklistScreen() {
             <section className="mt-6">
               <div className="flex items-center justify-between px-4 py-1">
                 <span className="text-base font-bold text-slate-700">
-                  In cart ({checked.length})
+                  Checked ({checked.length})
                 </span>
                 <button
                   type="button"
@@ -232,12 +262,15 @@ export default function StoreChecklistScreen() {
         </div>
       )}
 
-      <QuickAddBar
-        sections={sections.data ?? []}
-        onAdd={(name, sectionId) =>
-          addItem.mutate(buildListItem(householdId, storeId!, items.data ?? [], { name, sectionId }))
-        }
-      />
+      {notice && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4">
+          <p className="rounded-full bg-slate-900/90 px-4 py-2 text-sm text-white shadow-lg">
+            {notice}
+          </p>
+        </div>
+      )}
+
+      <QuickAddBar sections={sections.data ?? []} onAdd={handleAdd} />
     </div>
   )
 }

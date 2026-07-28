@@ -43,8 +43,11 @@ npm run dev
 The PWA install prompt requires HTTPS. Push this repo to GitHub, import it in
 [Vercel](https://vercel.com) (zero config for Vite), and set
 `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the project's environment
-variables. Then open the deployed URL in Chrome on Android and choose
-**Add to Home screen**.
+variables. Then install it on a phone:
+
+- **Android**: open the URL in Chrome → menu (⋮) → **Add to Home screen** → Install.
+- **iPhone**: open the URL in **Safari** (installing only works from Safari) →
+  Share button → **Add to Home Screen**.
 
 ## Offline behavior
 
@@ -52,3 +55,7 @@ The app shell is precached, and the query cache is persisted to localStorage,
 so lists stay readable with no signal. Check-offs made offline are replayed
 when the connection returns, as long as the app stays open. There is no full
 offline sync engine — by design.
+
+One iOS caveat: Safari can evict site storage for web apps you haven't opened
+in a while, so an installed StoreTrack that sat unused for weeks may need a
+fresh sign-in and an online launch to repopulate its cache.

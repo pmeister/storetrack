@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
 import {
-  needsRestock,
   useAddPantryItem,
   useAddPantryItemToList,
   useDeletePantryItem,
@@ -10,7 +9,6 @@ import {
 import { useStores } from '../hooks/useStores'
 import { useSections } from '../hooks/useSections'
 import type { PantryItem } from '../lib/types'
-import QuantityStepper from '../components/QuantityStepper'
 
 export default function PantryScreen() {
   const pantry = usePantry()
@@ -20,13 +18,9 @@ export default function PantryScreen() {
   const deleteItem = useDeletePantryItem()
   const addToList = useAddPantryItemToList()
   const [name, setName] = useState('')
-  const [restockOnly, setRestockOnly] = useState(false)
   const [pickerItem, setPickerItem] = useState<PantryItem | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  const items = (pantry.data ?? []).filter((i) => !restockOnly || needsRestock(i))
-  const needed = (pantry.data ?? []).filter(needsRestock)
 
   function showNotice(message: string) {
     setNotice(message)
@@ -64,102 +58,55 @@ export default function PantryScreen() {
 
   return (
     <div className="px-4 pb-24 pt-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Pantry</h1>
-        <button
-          type="button"
-          onClick={() => setRestockOnly(!restockOnly)}
-          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-            restockOnly ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600'
-          }`}
-        >
-          Needs restock{needed.length > 0 && ` (${needed.length})`}
-        </button>
-      </div>
-
-      {needed.length > 1 && (
-        <button
-          type="button"
-          onClick={() => needed.forEach(sendToList)}
-          className="mt-3 w-full rounded-xl border border-emerald-600 py-2 text-sm font-semibold text-emerald-700 active:bg-emerald-50"
-        >
-          Add all needed to shopping lists
-        </button>
-      )}
+      <h1 className="text-2xl font-bold">Pantry</h1>
+      <p className="mt-1 text-sm text-slate-500">
+        Staples you buy again and again — one tap puts them on the right list.
+      </p>
 
       {pantry.isPending && <p className="mt-6 text-sm text-slate-400">Loading…</p>}
       {pantry.data?.length === 0 && (
         <p className="mt-6 rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
-          Track what you have at home — when something runs low, push it onto a
-          store's shopping list.
+          Keep a list of things you regularly buy, and push them onto a store's
+          shopping list when you need them.
         </p>
       )}
 
       <ul className="mt-4 space-y-2">
-        {items.map((item) => {
-          const low = needsRestock(item)
-          return (
-            <li
-              key={item.id}
-              className={`rounded-2xl border bg-white px-4 py-3 ${
-                low ? 'border-amber-300' : 'border-slate-200'
-              }`}
+        {pantry.data?.map((item) => (
+          <li
+            key={item.id}
+            className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3"
+          >
+            <button
+              type="button"
+              className="min-w-0 flex-1 truncate text-left font-medium"
+              onClick={() => {
+                const next = prompt('Rename item', item.name)
+                if (next?.trim() && next.trim() !== item.name) {
+                  updateItem.mutate({ id: item.id, name: next.trim() })
+                }
+              }}
             >
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  className="min-w-0 flex-1 truncate text-left font-medium"
-                  onClick={() => {
-                    const next = prompt('Rename item', item.name)
-                    if (next?.trim() && next.trim() !== item.name) {
-                      updateItem.mutate({ id: item.id, name: next.trim() })
-                    }
-                  }}
-                >
-                  {item.name}
-                </button>
-                <QuantityStepper
-                  value={item.quantity}
-                  onChange={(quantity) => updateItem.mutate({ id: item.id, quantity })}
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = prompt('Restock when below', String(item.restock_threshold))
-                    const parsed = next ? parseInt(next, 10) : NaN
-                    if (!Number.isNaN(parsed) && parsed >= 0) {
-                      updateItem.mutate({ id: item.id, restock_threshold: parsed })
-                    }
-                  }}
-                >
-                  restock below {item.restock_threshold}
-                </button>
-                <div className="flex items-center gap-3">
-                  {low && (
-                    <button
-                      type="button"
-                      onClick={() => sendToList(item)}
-                      className="font-semibold text-emerald-600"
-                    >
-                      + Add to list
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm(`Remove ${item.name} from pantry?`)) deleteItem.mutate(item.id)
-                    }}
-                    className="font-semibold text-red-400 active:text-red-600"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </li>
-          )
-        })}
+              {item.name}
+            </button>
+            <button
+              type="button"
+              onClick={() => sendToList(item)}
+              className="shrink-0 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 active:bg-emerald-100"
+            >
+              + Add to list
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm(`Remove ${item.name} from pantry?`)) deleteItem.mutate(item.id)
+              }}
+              className="shrink-0 p-1 text-xs font-semibold text-red-400 active:text-red-600"
+            >
+              Remove
+            </button>
+          </li>
+        ))}
       </ul>
 
       <form
@@ -168,7 +115,7 @@ export default function PantryScreen() {
           e.preventDefault()
           const trimmed = name.trim()
           if (!trimmed) return
-          addItem.mutate({ name: trimmed })
+          addItem.mutate(trimmed)
           setName('')
         }}
       >

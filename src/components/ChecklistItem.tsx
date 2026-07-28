@@ -30,11 +30,6 @@ export default function ChecklistItem({ item, onToggle, onActions }: Props) {
           {item.quantity > 1 && (
             <span className="ml-2 text-sm font-medium text-slate-400">×{item.quantity}</span>
           )}
-          {item.pantry_item_id && (
-            <span className="ml-2 align-middle text-xs text-emerald-500" title="Tracked in pantry">
-              ◆
-            </span>
-          )}
         </span>
       </button>
       <button

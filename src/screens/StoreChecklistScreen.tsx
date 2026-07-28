@@ -12,7 +12,6 @@ import {
   useToggleListItem,
   useUncheckAll,
 } from '../hooks/useListItems'
-import { useTrackInPantry } from '../hooks/usePantry'
 import { useHouseholdId } from '../hooks/useAuth'
 import type { ListItem } from '../lib/types'
 import SectionGroup from '../components/SectionGroup'
@@ -32,7 +31,6 @@ export default function StoreChecklistScreen() {
   const renameItem = useRenameListItem(storeId!)
   const moveItem = useMoveListItem(storeId!)
   const uncheckAll = useUncheckAll(storeId!)
-  const trackInPantry = useTrackInPantry()
   const deleteStore = useDeleteStore()
   const renameStore = useRenameStore()
   const [actionItem, setActionItem] = useState<ListItem | null>(null)
@@ -183,17 +181,6 @@ export default function StoreChecklistScreen() {
                 className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left font-medium active:bg-slate-50"
               >
                 Move to section…
-              </button>
-              <button
-                type="button"
-                disabled={!!actionItem.pantry_item_id}
-                onClick={() => {
-                  trackInPantry.mutate(actionItem)
-                  setActionItem(null)
-                }}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left font-medium active:bg-slate-50 disabled:text-slate-300"
-              >
-                {actionItem.pantry_item_id ? 'Already in pantry ◆' : 'Add to pantry'}
               </button>
               <button
                 type="button"

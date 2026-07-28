@@ -1,12 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { keyAfterLast } from '../lib/ordering'
-import type { ListItem, PantryItem } from '../lib/types'
+import type { PantryItem } from '../lib/types'
 import { useHouseholdId } from './useAuth'
-
-export function needsRestock(item: PantryItem): boolean {
-  return item.quantity < item.restock_threshold
-}
 
 export function usePantry() {
   const householdId = useHouseholdId()
@@ -27,12 +23,10 @@ export function useAddPantryItem() {
   const householdId = useHouseholdId()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (input: { name: string; quantity?: number; restock_threshold?: number }) => {
+    mutationFn: async (name: string) => {
       const { error } = await supabase.from('pantry_items').insert({
         household_id: householdId,
-        name: input.name,
-        quantity: input.quantity ?? 0,
-        restock_threshold: input.restock_threshold ?? 1,
+        name,
       })
       if (error) throw error
     },
@@ -74,56 +68,6 @@ export function useDeletePantryItem() {
   })
 }
 
-/**
- * Start tracking a shopping-list item in the pantry. Links to an existing
- * pantry item with the same name if there is one, otherwise creates one
- * (quantity 0, defaulting to this store/section for future restocks).
- */
-export function useTrackInPantry() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async (item: ListItem) => {
-      if (item.pantry_item_id) return 'already-tracked'
-
-      const { data: existing, error: existingError } = await supabase
-        .from('pantry_items')
-        .select('id')
-        .ilike('name', item.name)
-        .limit(1)
-      if (existingError) throw existingError
-
-      let pantryId = existing[0]?.id as string | undefined
-      if (!pantryId) {
-        const { data, error } = await supabase
-          .from('pantry_items')
-          .insert({
-            household_id: item.household_id,
-            name: item.name,
-            quantity: 0,
-            restock_threshold: 1,
-            default_store_id: item.store_id,
-            default_section_id: item.section_id,
-          })
-          .select('id')
-          .single()
-        if (error) throw error
-        pantryId = data.id
-      }
-
-      const { error: linkError } = await supabase
-        .from('list_items')
-        .update({ pantry_item_id: pantryId })
-        .eq('id', item.id)
-      if (linkError) throw linkError
-      return 'tracked'
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['pantry'] })
-      queryClient.invalidateQueries({ queryKey: ['list_items'] })
-    },
-  })
-}
-
 export interface AddToListArgs {
   item: PantryItem
   storeId: string
@@ -155,13 +99,11 @@ export function useAddPantryItemToList() {
       const unchecked = linked.find((row) => !row.checked)
       if (unchecked) return { status: 'already-listed', storeId: unchecked.store_id }
 
-      const needed = Math.max(1, item.restock_threshold - item.quantity)
-
       const inCart = linked.find((row) => row.checked)
       if (inCart) {
         const { error } = await supabase
           .from('list_items')
-          .update({ checked: false, quantity: needed })
+          .update({ checked: false })
           .eq('id', inCart.id)
         if (error) throw error
         return { status: 'restored', storeId: inCart.store_id }
@@ -179,7 +121,6 @@ export function useAddPantryItemToList() {
         section_id: sectionId,
         pantry_item_id: item.id,
         name: item.name,
-        quantity: needed,
         position: keyAfterLast(rows),
       })
       if (error) throw error

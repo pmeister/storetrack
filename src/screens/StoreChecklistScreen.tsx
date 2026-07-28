@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router'
 import { useState } from 'react'
-import { useStores, useDeleteStore } from '../hooks/useStores'
+import { useStores, useDeleteStore, useRenameStore } from '../hooks/useStores'
 import { useSections } from '../hooks/useSections'
 import {
   buildListItem,
@@ -8,6 +8,7 @@ import {
   useCompleteTrip,
   useDeleteListItem,
   useListItems,
+  useRenameListItem,
   useToggleListItem,
 } from '../hooks/useListItems'
 import { useHouseholdId } from '../hooks/useAuth'
@@ -26,8 +27,10 @@ export default function StoreChecklistScreen() {
   const addItem = useAddListItem(storeId!)
   const toggleItem = useToggleListItem(storeId!)
   const deleteItem = useDeleteListItem(storeId!)
+  const renameItem = useRenameListItem(storeId!)
   const completeTrip = useCompleteTrip(storeId!)
   const deleteStore = useDeleteStore()
+  const renameStore = useRenameStore()
   const [cartOpen, setCartOpen] = useState(false)
 
   const store = stores.data?.find((s) => s.id === storeId)
@@ -42,6 +45,12 @@ export default function StoreChecklistScreen() {
 
   const onToggle = (item: ListItem) => toggleItem.mutate({ id: item.id, checked: !item.checked })
   const onDelete = (item: ListItem) => deleteItem.mutate(item.id)
+  const onRename = (item: ListItem) => {
+    const next = prompt('Rename item', item.name)
+    if (next?.trim() && next.trim() !== item.name) {
+      renameItem.mutate({ id: item.id, name: next.trim() })
+    }
+  }
 
   return (
     <div className="pb-40 pt-4">
@@ -51,7 +60,19 @@ export default function StoreChecklistScreen() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
           </svg>
         </Link>
-        <h1 className="flex-1 truncate text-xl font-bold">{store?.name ?? 'Store'}</h1>
+        <button
+          type="button"
+          className="min-w-0 flex-1 truncate text-left text-xl font-bold"
+          onClick={() => {
+            if (!store) return
+            const next = prompt('Rename store', store.name)
+            if (next?.trim() && next.trim() !== store.name) {
+              renameStore.mutate({ id: store.id, name: next.trim() })
+            }
+          }}
+        >
+          {store?.name ?? 'Store'}
+        </button>
         <Link
           to={`/stores/${storeId}/sections`}
           className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600"
@@ -93,6 +114,7 @@ export default function StoreChecklistScreen() {
               items={bySection.get(section.id) ?? []}
               onToggle={onToggle}
               onDelete={onDelete}
+              onRename={onRename}
             />
           ))}
           <SectionGroup
@@ -100,6 +122,7 @@ export default function StoreChecklistScreen() {
             items={bySection.get(null) ?? []}
             onToggle={onToggle}
             onDelete={onDelete}
+            onRename={onRename}
           />
 
           {checked.length > 0 && (
@@ -115,7 +138,13 @@ export default function StoreChecklistScreen() {
               {cartOpen && (
                 <ul className="divide-y divide-slate-100 border-y border-slate-100">
                   {checked.map((item) => (
-                    <ChecklistItem key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} />
+                    <ChecklistItem
+                      key={item.id}
+                      item={item}
+                      onToggle={onToggle}
+                      onDelete={onDelete}
+                      onRename={onRename}
+                    />
                   ))}
                 </ul>
               )}

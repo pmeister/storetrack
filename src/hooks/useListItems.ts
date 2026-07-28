@@ -102,6 +102,28 @@ export function useToggleListItem(storeId: string) {
   })
 }
 
+export function useRenameListItem(storeId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from('list_items').update({ name }).eq('id', id)
+      if (error) throw error
+    },
+    onMutate: async ({ id, name }) => {
+      await queryClient.cancelQueries({ queryKey: ['list_items', storeId] })
+      const prev = queryClient.getQueryData<ListItem[]>(['list_items', storeId])
+      queryClient.setQueryData<ListItem[]>(['list_items', storeId], (old) =>
+        old?.map((i) => (i.id === id ? { ...i, name } : i)),
+      )
+      return { prev }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['list_items', storeId], ctx.prev)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['list_items'] }),
+  })
+}
+
 export function useDeleteListItem(storeId: string) {
   const queryClient = useQueryClient()
   return useMutation({

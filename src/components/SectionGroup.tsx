@@ -6,9 +6,10 @@ interface Props {
   items: ListItem[]
   onToggle: (item: ListItem) => void
   onDelete: (item: ListItem) => void
+  onRename: (item: ListItem) => void
 }
 
-export default function SectionGroup({ title, items, onToggle, onDelete }: Props) {
+export default function SectionGroup({ title, items, onToggle, onDelete, onRename }: Props) {
   if (items.length === 0) return null
   return (
     <section>
@@ -17,7 +18,13 @@ export default function SectionGroup({ title, items, onToggle, onDelete }: Props
       </h2>
       <ul className="divide-y divide-slate-100 border-y border-slate-100">
         {items.map((item) => (
-          <ChecklistItem key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} />
+          <ChecklistItem
+            key={item.id}
+            item={item}
+            onToggle={onToggle}
+            onDelete={onDelete}
+            onRename={onRename}
+          />
         ))}
       </ul>
     </section>

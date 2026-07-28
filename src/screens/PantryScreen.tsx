@@ -82,7 +82,18 @@ export default function PantryScreen() {
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="min-w-0 flex-1 truncate font-medium">{item.name}</span>
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 truncate text-left font-medium"
+                  onClick={() => {
+                    const next = prompt('Rename item', item.name)
+                    if (next?.trim() && next.trim() !== item.name) {
+                      updateItem.mutate({ id: item.id, name: next.trim() })
+                    }
+                  }}
+                >
+                  {item.name}
+                </button>
                 <QuantityStepper
                   value={item.quantity}
                   onChange={(quantity) => updateItem.mutate({ id: item.id, quantity })}

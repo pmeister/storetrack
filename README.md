@@ -19,9 +19,23 @@ Looking for the friendly, non-technical intro to share with someone? See
 
 ## Stack
 
-Vite + React + TypeScript · Tailwind CSS v4 · TanStack Query v5 over
-supabase-js · dnd-kit · vite-plugin-pwa. Data lives in Supabase (Postgres +
-Auth + Realtime) with row-level security per household.
+**Frontend** — Vite + React + TypeScript, Tailwind CSS v4, React Router,
+TanStack Query v5 over supabase-js (with a localStorage-persisted cache),
+dnd-kit for drag reordering, and vite-plugin-pwa for the manifest and service
+worker. No SSR: it's a pure client app.
+
+**Data and auth** — Supabase (Postgres, Auth, Realtime). Every table is
+protected by row-level security scoped to the caller's household. Sign-in is
+OpenID Connect via Google, with email/password kept as a fallback.
+
+**Hosting** — Vercel. It serves the static build, hosts the two serverless
+functions under `api/`, and auto-deploys every push to `main`. HTTPS there is
+what makes the PWA installable.
+
+**Change stream** — Confluent Cloud (Kafka). Database changes are produced to
+a `storetrack.changes` topic through the Kafka REST API, and a kafkajs
+consumer drains them back into a table that powers the Activity log. See
+[Kafka change stream](#kafka-change-stream-optional) for the full picture.
 
 ## Setup
 

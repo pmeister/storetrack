@@ -143,3 +143,7 @@ offline sync engine — by design.
 One iOS caveat: Safari can evict site storage for web apps you haven't opened
 in a while, so an installed StoreTrack that sat unused for weeks may need a
 fresh sign-in and an online launch to repopulate its cache.
+
+## License
+
+MIT — see [LICENSE](LICENSE). © 2026 Patrick Taylor.

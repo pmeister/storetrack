@@ -146,4 +146,5 @@ fresh sign-in and an online launch to repopulate its cache.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). © 2026 Patrick Taylor.
+GNU General Public License v3.0 — see [LICENSE](LICENSE).
+© 2026 Patrick Taylor.

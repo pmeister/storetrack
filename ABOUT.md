@@ -39,9 +39,9 @@ your computer.
 
 **👉 [storetrack-xi.vercel.app](https://storetrack-xi.vercel.app)**
 
-Sign up with an email and password, then either start a new household or join
-someone else's with their 6-character invite code (they'll find it on their
-Settings screen).
+Tap **Continue with Google** — that's the whole sign-up, no new password to
+remember. Then either start a new household or join someone else's with their
+6-character invite code (they'll find it on their Settings screen).
 
 ## Put it on your home screen
 

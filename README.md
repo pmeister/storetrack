@@ -29,8 +29,14 @@ Auth + Realtime) with row-level security per household.
 2. **Run the schema**: paste all of [`supabase/schema.sql`](supabase/schema.sql)
    into the SQL Editor and run it. This file is the source of truth for
    tables, RLS policies, RPCs, and the signup trigger.
-3. **Auth settings**: Authentication → Providers → Email — leave
-   email/password enabled and turn **off** "Confirm email".
+3. **Auth settings**:
+   - Authentication → Providers → **Email**: leave enabled (existing accounts
+     and the fallback form use it) and turn **off** "Confirm email".
+   - Authentication → Providers → **Google**: enable it and paste the OAuth
+     client ID and secret from a Google Cloud project (see below).
+   - Authentication → **URL Configuration**: set Site URL to the deployed
+     origin and add both origins to Redirect URLs —
+     `https://<your-app>.vercel.app/**` and `http://localhost:5173/**`.
 4. **Realtime**: Database → Publications → `supabase_realtime` — add
    `stores`, `sections`, `list_items`.
 5. **Env vars**: copy `.env.example` to `.env.local` and fill in the Project
@@ -40,6 +46,32 @@ Auth + Realtime) with row-level security per household.
 npm install
 npm run dev
 ```
+
+### Sign-in (OIDC)
+
+Sign-in and account creation go through OpenID Connect — currently Google,
+with email/password kept as a fallback for accounts that predate it. Signing
+in with a provider for the first time creates the account and its profile
+automatically (the `handle_new_user` trigger reads the name from
+`display_name`, `full_name`, or `name`, whichever the provider sends).
+
+To set up the Google credentials:
+
+1. In [Google Cloud Console](https://console.cloud.google.com) → APIs &
+   Services → **Credentials**, create an **OAuth client ID** of type *Web
+   application*.
+2. Under *Authorized redirect URIs*, add the callback Supabase shows on its
+   Google provider page: `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. Configure the OAuth consent screen (External is fine; while it is in
+   "Testing" only accounts listed as test users can sign in — publish it, or
+   add household members as test users).
+4. Paste the client ID and secret into Supabase → Authentication → Providers →
+   Google.
+
+Adding another provider (Apple, GitHub, an enterprise IdP…) means enabling it
+in Supabase, appending an entry to `OIDC_PROVIDERS` in
+[`src/lib/oidc.ts`](src/lib/oidc.ts), and adding its brand mark to the sign-in
+screen. The redirect handling itself is provider-agnostic.
 
 ## Deploying (needed for Android install)
 

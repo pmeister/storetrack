@@ -129,7 +129,8 @@ export default function SettingsScreen() {
       </button>
 
       <p className="mt-8 text-balance text-center text-xs text-slate-400">
-        © {new Date().getFullYear()} Patrick Taylor, @pmeister, pmeister@gmail.com
+        © {new Date().getFullYear()} Patrick Taylor, @pmeister,
+        5705473+pmeister@users.noreply.github.com
       </p>
     </div>
   )

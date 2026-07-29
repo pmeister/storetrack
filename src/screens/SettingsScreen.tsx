@@ -127,6 +127,10 @@ export default function SettingsScreen() {
       >
         Sign out
       </button>
+
+      <p className="mt-8 text-center text-xs text-slate-400">
+        © {new Date().getFullYear()} Patrick Taylor
+      </p>
     </div>
   )
 }

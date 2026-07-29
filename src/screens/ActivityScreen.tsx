@@ -22,7 +22,7 @@ export default function ActivityScreen() {
         </button>
       </div>
       <p className="mt-1 text-sm text-slate-500">
-        Every change from everyone in the household, straight from Kafka.
+        Every change from everyone in the household.
       </p>
 
       {log.isPending && <p className="mt-6 text-sm text-slate-400">Reading the change stream…</p>}

@@ -36,7 +36,7 @@ export default function AuthScreen() {
     <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6">
       <h1 className="text-center text-3xl font-bold text-emerald-600">StoreTrack</h1>
       <p className="mt-1 text-center text-sm text-slate-500">
-        Shopping lists by store, plus your pantry
+        Shopping lists organized by store
       </p>
 
       <form onSubmit={submit} className="mt-8 space-y-3">

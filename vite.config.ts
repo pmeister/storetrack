@@ -13,7 +13,7 @@ export default defineConfig({
       manifest: {
         name: 'StoreTrack',
         short_name: 'StoreTrack',
-        description: 'Shopping lists by store, plus pantry tracking',
+        description: 'Shopping lists organized by store',
         display: 'standalone',
         start_url: '/',
         theme_color: '#059669',

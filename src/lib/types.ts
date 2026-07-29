@@ -25,22 +25,11 @@ export interface Section {
   position: string
 }
 
-export interface PantryItem {
-  id: string
-  household_id: string
-  name: string
-  quantity: number
-  restock_threshold: number
-  default_store_id: string | null
-  default_section_id: string | null
-}
-
 export interface ListItem {
   id: string
   household_id: string
   store_id: string
   section_id: string | null
-  pantry_item_id: string | null
   name: string
   quantity: number
   checked: boolean

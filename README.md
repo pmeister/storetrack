@@ -32,7 +32,7 @@ Auth + Realtime) with row-level security per household.
 3. **Auth settings**: Authentication → Providers → Email — leave
    email/password enabled and turn **off** "Confirm email".
 4. **Realtime**: Database → Publications → `supabase_realtime` — add
-   `stores`, `sections`, `list_items`, `pantry_items`.
+   `stores`, `sections`, `list_items`.
 5. **Env vars**: copy `.env.example` to `.env.local` and fill in the Project
    URL and anon key from Project Settings → API.
 

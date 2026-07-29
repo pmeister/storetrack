@@ -28,7 +28,7 @@ export default function OnboardingScreen() {
       <div>
         <h1 className="text-2xl font-bold">Set up your household</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Lists and pantry are shared with everyone in your household.
+          Stores and lists are shared with everyone in your household.
         </p>
       </div>
 

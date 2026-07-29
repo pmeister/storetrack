@@ -21,7 +21,6 @@ export interface NewListItem {
   name: string
   sectionId: string | null
   quantity?: number
-  pantryItemId?: string | null
 }
 
 export function useAddListItem(storeId: string) {
@@ -33,7 +32,6 @@ export function useAddListItem(storeId: string) {
         household_id: item.household_id,
         store_id: item.store_id,
         section_id: item.section_id,
-        pantry_item_id: item.pantry_item_id,
         name: item.name,
         quantity: item.quantity,
         position: item.position,
@@ -69,7 +67,6 @@ export function buildListItem(
     household_id: householdId,
     store_id: storeId,
     section_id: input.sectionId,
-    pantry_item_id: input.pantryItemId ?? null,
     name: input.name,
     quantity: input.quantity ?? 1,
     checked: false,

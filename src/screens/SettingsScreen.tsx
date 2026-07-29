@@ -128,8 +128,8 @@ export default function SettingsScreen() {
         Sign out
       </button>
 
-      <p className="mt-8 text-center text-xs text-slate-400">
-        © {new Date().getFullYear()} Patrick Taylor
+      <p className="mt-8 text-balance text-center text-xs text-slate-400">
+        © {new Date().getFullYear()} Patrick Taylor, @pmeister, pmeister@gmail.com
       </p>
     </div>
   )

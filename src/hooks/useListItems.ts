@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { byPosition, keyAfterLast } from '../lib/ordering'
 import type { ListItem } from '../lib/types'
+import { useHouseholdId } from './useAuth'
 
 export function useListItems(storeId: string) {
   return useQuery({
@@ -13,6 +14,28 @@ export function useListItems(storeId: string) {
         .eq('store_id', storeId)
       if (error) throw error
       return (data as ListItem[]).sort(byPosition)
+    },
+  })
+}
+
+/** Unique item names across every store in the household (case-insensitive dedupe). */
+export function useAllItemNames() {
+  const householdId = useHouseholdId()
+  return useQuery({
+    queryKey: ['list_items', 'all-names', householdId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('list_items').select('name')
+      if (error) throw error
+      const seen = new Set<string>()
+      const names: string[] = []
+      for (const { name } of data as { name: string }[]) {
+        const key = name.trim().toLowerCase()
+        if (key && !seen.has(key)) {
+          seen.add(key)
+          names.push(name.trim())
+        }
+      }
+      return names.sort((a, b) => a.localeCompare(b))
     },
   })
 }

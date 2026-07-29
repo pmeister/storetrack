@@ -5,6 +5,7 @@ import { useSections } from '../hooks/useSections'
 import {
   buildListItem,
   useAddListItem,
+  useAllItemNames,
   useDeleteListItem,
   useListItems,
   useMoveListItem,
@@ -25,6 +26,7 @@ export default function StoreChecklistScreen() {
   const stores = useStores()
   const sections = useSections(storeId!)
   const items = useListItems(storeId!)
+  const allNames = useAllItemNames()
   const addItem = useAddListItem(storeId!)
   const toggleItem = useToggleListItem(storeId!)
   const deleteItem = useDeleteListItem(storeId!)
@@ -268,7 +270,11 @@ export default function StoreChecklistScreen() {
         </div>
       )}
 
-      <QuickAddBar sections={sections.data ?? []} onAdd={handleAdd} />
+      <QuickAddBar
+        sections={sections.data ?? []}
+        suggestions={allNames.data ?? []}
+        onAdd={handleAdd}
+      />
     </div>
   )
 }

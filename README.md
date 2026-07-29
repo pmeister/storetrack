@@ -62,11 +62,24 @@ streamed to a Confluent Cloud topic (`storetrack.changes`), keyed by
       → POST /api/kafka-webhook on Vercel (secret-gated)
         → Confluent Kafka REST API produce
 
-Setup: create the topic and a cluster API key in Confluent (granular access;
-one ACL — Write on the topic, literal match), set
-`CONFLUENT_REST_ENDPOINT`, `CONFLUENT_CLUSTER_ID`, `CONFLUENT_API_KEY`,
+Setup: create the topic and a cluster API key in Confluent (granular access),
+set `CONFLUENT_REST_ENDPOINT`, `CONFLUENT_CLUSTER_ID`, `CONFLUENT_API_KEY`,
 `CONFLUENT_API_SECRET`, and `WEBHOOK_SECRET` in Vercel, then run
 `supabase/webhooks.sql` (placeholders filled in) in the Supabase SQL Editor.
+
+The **Activity** tab consumes the topic back (`api/audit-log.ts`, kafkajs)
+and shows the household's changes as an audit log. The API key's service
+account needs these ACLs:
+
+| Resource | Name | Pattern | Operation |
+|---|---|---|---|
+| Topic | `storetrack.changes` | Literal | Write |
+| Topic | `storetrack.changes` | Literal | Read |
+| Consumer group | `storetrack-audit` | Literal | Read |
+
+Note the audit log only reaches as far back as the topic's retention
+(Confluent default: 7 days). For a permanent log, set the topic's
+`retention.ms` to `-1` (infinite) in Confluent's topic configuration.
 
 ## Offline behavior
 

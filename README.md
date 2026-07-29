@@ -99,9 +99,27 @@ set `CONFLUENT_REST_ENDPOINT`, `CONFLUENT_CLUSTER_ID`, `CONFLUENT_API_KEY`,
 `CONFLUENT_API_SECRET`, and `WEBHOOK_SECRET` in Vercel, then run
 `supabase/webhooks.sql` (placeholders filled in) in the Supabase SQL Editor.
 
-The **Activity** tab consumes the topic back (`api/audit-log.ts`, kafkajs)
-and shows the household's changes as an audit log. The API key's service
-account needs these ACLs:
+The **Activity** tab consumes the topic back:
+
+    /api/audit-log (kafkajs, consumer group storetrack-audit)
+      → drains new messages into the activity_events table
+        → the app reads activity_events directly (RLS-scoped)
+
+The consumer keeps committed offsets, so each drain only fetches what
+arrived since the last one — when nothing is pending it returns without
+opening a consumer at all. Because the screen renders from the table rather
+than from a topic replay, it paints instantly and picks up new entries a
+moment later. Replayed messages collide on a unique `(partition, offset)`
+index and are ignored, so drains are idempotent.
+
+Extra setup for the consumer:
+
+- Run [`supabase/2026-07-29-activity-events.sql`](supabase/2026-07-29-activity-events.sql).
+- Set `SUPABASE_SERVICE_ROLE_KEY` in Vercel (server-side only — never
+  `VITE_`-prefixed). One drain writes rows for every household in the topic,
+  not just the caller's, and the table has no client-writable policy so the
+  log can't be forged from the app.
+- Give the API key's service account these ACLs:
 
 | Resource | Name | Pattern | Operation |
 |---|---|---|---|
@@ -109,9 +127,11 @@ account needs these ACLs:
 | Topic | `storetrack.changes` | Literal | Read |
 | Consumer group | `storetrack-audit` | Literal | Read |
 
-Note the audit log only reaches as far back as the topic's retention
-(Confluent default: 7 days). For a permanent log, set the topic's
-`retention.ms` to `-1` (infinite) in Confluent's topic configuration.
+Events that have already been drained live in Postgres indefinitely, but
+anything still only in Kafka is subject to the topic's retention (Confluent
+default: 7 days) — so a gap longer than retention between drains loses
+whatever expired in between. Set the topic's `retention.ms` to `-1` if that
+matters.
 
 ## Offline behavior
 

@@ -36,23 +36,11 @@ create table if not exists sections (
   updated_by uuid
 );
 
-create table if not exists pantry_items (
-  id uuid primary key default gen_random_uuid(),
-  household_id uuid not null references households on delete cascade,
-  name text not null,
-  quantity int not null default 0,
-  restock_threshold int not null default 1,
-  default_store_id uuid references stores on delete set null,
-  default_section_id uuid references sections on delete set null,
-  created_at timestamptz not null default now()
-);
-
 create table if not exists list_items (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households on delete cascade,
   store_id uuid not null references stores on delete cascade,
   section_id uuid references sections on delete set null,
-  pantry_item_id uuid references pantry_items on delete set null,
   name text not null,
   quantity int not null default 1,
   checked boolean not null default false,
@@ -89,7 +77,6 @@ create index if not exists stores_household_idx on stores (household_id);
 create index if not exists sections_store_idx on sections (store_id);
 create index if not exists list_items_store_idx on list_items (store_id);
 create index if not exists list_items_household_idx on list_items (household_id);
-create index if not exists pantry_items_household_idx on pantry_items (household_id);
 
 -- ============================================================ helper
 
@@ -103,7 +90,6 @@ alter table households enable row level security;
 alter table profiles enable row level security;
 alter table stores enable row level security;
 alter table sections enable row level security;
-alter table pantry_items enable row level security;
 alter table list_items enable row level security;
 
 drop policy if exists profiles_select on profiles;
@@ -130,11 +116,6 @@ create policy household_all on stores for all
 
 drop policy if exists household_all on sections;
 create policy household_all on sections for all
-  using (household_id = current_household_id())
-  with check (household_id = current_household_id());
-
-drop policy if exists household_all on pantry_items;
-create policy household_all on pantry_items for all
   using (household_id = current_household_id())
   with check (household_id = current_household_id());
 

@@ -14,9 +14,6 @@ installs to an Android or iPhone home screen.
 - **Household** — everyone who joins with your invite code shares the same
   stores and lists, live via Supabase Realtime.
 
-A pantry/staples feature existed briefly and was removed pending a redesign;
-its tables (`pantry_items`, `list_items.pantry_item_id`) remain in the schema.
-
 ## Stack
 
 Vite + React + TypeScript · Tailwind CSS v4 · TanStack Query v5 over

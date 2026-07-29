@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Section } from '../lib/types'
+
+export interface SectionSelection {
+  id: string | null
+  /** Bumped on every selection so re-selecting the same section still refocuses. */
+  nonce: number
+}
 
 interface Props {
   sections: Section[]
   /** Unique item names across all stores, for autocomplete. */
   suggestions: string[]
+  selected: SectionSelection
+  onSelectSection: (id: string | null) => void
   onAdd: (name: string, sectionId: string | null) => void
 }
 
@@ -24,18 +32,45 @@ function boundaryMatches(suggestions: string[], input: string): string[] {
 }
 
 /** Sticky bar above the tab bar: item name + section chip picker. */
-export default function QuickAddBar({ sections, suggestions, onAdd }: Props) {
+export default function QuickAddBar({ sections, suggestions, selected, onSelectSection, onAdd }: Props) {
   const [name, setName] = useState('')
-  const [sectionId, setSectionId] = useState<string | null>(null)
   const [focused, setFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const chipRefs = useRef(new Map<string, HTMLButtonElement>())
+
+  useEffect(() => {
+    if (selected.nonce === 0) return
+    chipRefs.current
+      .get(selected.id ?? 'unsorted')
+      ?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    inputRef.current?.focus()
+  }, [selected])
 
   const matches = focused ? boundaryMatches(suggestions, name) : []
 
   function submit(text: string) {
     const trimmed = text.trim()
     if (!trimmed) return
-    onAdd(trimmed, sectionId)
+    onAdd(trimmed, selected.id)
     setName('')
+  }
+
+  function chip(id: string | null, label: string) {
+    return (
+      <button
+        type="button"
+        ref={(el) => {
+          if (el) chipRefs.current.set(id ?? 'unsorted', el)
+          else chipRefs.current.delete(id ?? 'unsorted')
+        }}
+        onClick={() => onSelectSection(id)}
+        className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+          selected.id === id ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'
+        }`}
+      >
+        {label}
+      </button>
+    )
   }
 
   return (
@@ -59,31 +94,8 @@ export default function QuickAddBar({ sections, suggestions, onAdd }: Props) {
         )}
         {sections.length > 0 && (
           <div className="flex gap-1.5 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch]">
-            <button
-              type="button"
-              onClick={() => setSectionId(null)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-                sectionId === null
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-100 text-slate-500'
-              }`}
-            >
-              Unsorted
-            </button>
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                type="button"
-                onClick={() => setSectionId(section.id)}
-                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-                  sectionId === section.id
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                {section.name}
-              </button>
-            ))}
+            {chip(null, 'Unsorted')}
+            {sections.map((section) => chip(section.id, section.name))}
           </div>
         )}
         <form
@@ -94,6 +106,7 @@ export default function QuickAddBar({ sections, suggestions, onAdd }: Props) {
           }}
         >
           <input
+            ref={inputRef}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onFocus={() => setFocused(true)}

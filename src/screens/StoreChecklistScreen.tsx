@@ -17,7 +17,7 @@ import { useHouseholdId } from '../hooks/useAuth'
 import type { ListItem } from '../lib/types'
 import SectionGroup from '../components/SectionGroup'
 import ChecklistItem from '../components/ChecklistItem'
-import QuickAddBar from '../components/QuickAddBar'
+import QuickAddBar, { type SectionSelection } from '../components/QuickAddBar'
 
 export default function StoreChecklistScreen() {
   const { storeId } = useParams<{ storeId: string }>()
@@ -39,6 +39,10 @@ export default function StoreChecklistScreen() {
   const [movingItem, setMovingItem] = useState<ListItem | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [chosenSection, setChosenSection] = useState<SectionSelection>({ id: null, nonce: 0 })
+
+  const selectSection = (id: string | null) =>
+    setChosenSection((prev) => ({ id, nonce: prev.nonce + 1 }))
 
   function showNotice(message: string) {
     setNotice(message)
@@ -140,6 +144,7 @@ export default function StoreChecklistScreen() {
               items={bySection.get(section.id) ?? []}
               onToggle={onToggle}
               onActions={setActionItem}
+              onHeaderClick={() => selectSection(section.id)}
             />
           ))}
           <SectionGroup
@@ -147,6 +152,7 @@ export default function StoreChecklistScreen() {
             items={bySection.get(null) ?? []}
             onToggle={onToggle}
             onActions={setActionItem}
+            onHeaderClick={() => selectSection(null)}
           />
 
           {checked.length > 0 && (
@@ -273,6 +279,8 @@ export default function StoreChecklistScreen() {
       <QuickAddBar
         sections={sections.data ?? []}
         suggestions={allNames.data ?? []}
+        selected={chosenSection}
+        onSelectSection={selectSection}
         onAdd={handleAdd}
       />
     </div>

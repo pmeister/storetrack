@@ -4,6 +4,9 @@ Shopping lists organized by store — with each store's checklist grouped into
 sections that match how you walk it. Built as a PWA: runs in the browser and
 installs to an Android or iPhone home screen.
 
+Looking for the friendly, non-technical intro to share with someone? See
+[ABOUT.md](ABOUT.md).
+
 - **Stores** — each store has its own list and its own sections ("Produce",
   "Aisle 2", …), drag-reorderable into walking order.
 - **Shopping** — items are grouped by section; checked items sink into a

@@ -8,6 +8,7 @@ export interface Profile {
   id: string
   household_id: string | null
   display_name: string
+  nickname?: string
 }
 
 export interface Store {

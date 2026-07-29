@@ -14,6 +14,7 @@ create table if not exists profiles (
   id uuid primary key references auth.users on delete cascade,
   household_id uuid references households on delete set null,
   display_name text not null default '',
+  nickname text not null default '',
   created_at timestamptz not null default now()
 );
 
@@ -22,6 +23,7 @@ create table if not exists stores (
   household_id uuid not null references households on delete cascade,
   name text not null,
   position text not null,
+  updated_by uuid,
   created_at timestamptz not null default now()
 );
 
@@ -30,7 +32,8 @@ create table if not exists sections (
   household_id uuid not null references households on delete cascade,
   store_id uuid not null references stores on delete cascade,
   name text not null,
-  position text not null
+  position text not null,
+  updated_by uuid
 );
 
 create table if not exists pantry_items (
@@ -54,8 +57,33 @@ create table if not exists list_items (
   quantity int not null default 1,
   checked boolean not null default false,
   position text not null,
+  updated_by uuid,
   created_at timestamptz not null default now()
 );
+
+-- stamp the acting user on every insert/update (delete attribution is the
+-- last editor, since a deleted row can't record its deleter)
+create or replace function set_updated_by() returns trigger
+language plpgsql as $$
+begin
+  new.updated_by := auth.uid();
+  return new;
+end $$;
+
+drop trigger if exists set_updated_by_stores on stores;
+create trigger set_updated_by_stores
+  before insert or update on stores
+  for each row execute function set_updated_by();
+
+drop trigger if exists set_updated_by_sections on sections;
+create trigger set_updated_by_sections
+  before insert or update on sections
+  for each row execute function set_updated_by();
+
+drop trigger if exists set_updated_by_list_items on list_items;
+create trigger set_updated_by_list_items
+  before insert or update on list_items
+  for each row execute function set_updated_by();
 
 create index if not exists stores_household_idx on stores (household_id);
 create index if not exists sections_store_idx on sections (store_id);

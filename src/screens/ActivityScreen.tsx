@@ -1,10 +1,13 @@
 import { useAuditLog, type ChangeEvent } from '../hooks/useAuditLog'
 import { useStores } from '../hooks/useStores'
-import type { Store } from '../lib/types'
+import { useMembers } from '../hooks/useMembers'
+import { effectiveNickname } from '../lib/nicknames'
+import type { Profile, Store } from '../lib/types'
 
 export default function ActivityScreen() {
   const log = useAuditLog()
   const stores = useStores()
+  const members = useMembers()
 
   return (
     <div className="px-4 pb-24 pt-6">
@@ -39,13 +42,29 @@ export default function ActivityScreen() {
           <li key={i} className="flex items-start gap-3 px-4 py-3">
             <span className="mt-0.5 text-base">{iconFor(event)}</span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm">{describe(event, stores.data ?? [])}</span>
+              <span className="block text-sm">
+                {actorChip(event, members.data ?? [])}
+                {describe(event, stores.data ?? [])}
+              </span>
               <span className="block text-xs text-slate-400">{formatTime(event.at)}</span>
             </span>
           </li>
         ))}
       </ul>
     </div>
+  )
+}
+
+function actorChip(event: ChangeEvent, members: Profile[]) {
+  const actorId =
+    (event.record?.updated_by as string | undefined) ??
+    (event.old_record?.updated_by as string | undefined)
+  const actor = members.find((m) => m.id === actorId)
+  if (!actor) return null
+  return (
+    <span className="mr-1.5 inline-flex min-w-6 items-center justify-center rounded bg-emerald-100 px-1 align-text-bottom text-xs font-bold text-emerald-700">
+      {effectiveNickname(actor)}
+    </span>
   )
 }
 

@@ -48,7 +48,8 @@ export default function AuthScreen() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6">
-      <h1 className="text-center text-3xl font-bold text-emerald-600">StoreTrack</h1>
+      <img src="/favicon.svg" alt="" className="mx-auto h-20 w-20" />
+      <h1 className="mt-4 text-center text-3xl font-bold text-emerald-600">StoreTrack</h1>
       <p className="mt-1 text-center text-sm text-slate-500">
         Shopping lists organized by store
       </p>

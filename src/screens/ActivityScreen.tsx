@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { useActivity, useDrainActivity, type ChangeEvent } from '../hooks/useActivity'
+import { useActivity, type ChangeEvent } from '../hooks/useActivity'
 import { useStores } from '../hooks/useStores'
 import { useMembers } from '../hooks/useMembers'
 import { effectiveNickname } from '../lib/nicknames'
@@ -7,16 +6,8 @@ import type { Profile, Store } from '../lib/types'
 
 export default function ActivityScreen() {
   const log = useActivity()
-  const drain = useDrainActivity()
   const stores = useStores()
   const members = useMembers()
-
-  // Pull anything new off the stream in the background; the list below is
-  // already on screen from the local cache while this runs.
-  const drainMutate = drain.mutate
-  useEffect(() => {
-    drainMutate()
-  }, [drainMutate])
 
   return (
     <div className="px-4 pb-24 pt-6">
@@ -24,11 +15,11 @@ export default function ActivityScreen() {
         <h1 className="text-2xl font-bold">Activity</h1>
         <button
           type="button"
-          disabled={drain.isPending}
-          onClick={() => drain.mutate()}
+          disabled={log.isFetching}
+          onClick={() => log.refetch()}
           className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 active:bg-slate-200 disabled:opacity-50"
         >
-          {drain.isPending ? 'Checking…' : 'Refresh'}
+          {log.isFetching ? 'Refreshing…' : 'Refresh'}
         </button>
       </div>
       <p className="mt-1 text-sm text-slate-500">
@@ -41,15 +32,9 @@ export default function ActivityScreen() {
           Couldn't load the activity log: {log.error.message}
         </p>
       )}
-      {drain.isError && (
-        <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
-          Showing stored history — checking for new activity failed:{' '}
-          {drain.error.message}
-        </p>
-      )}
-      {log.data?.length === 0 && !drain.isPending && (
+      {log.data?.length === 0 && (
         <p className="mt-6 rounded-2xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
-          No recorded changes yet. Make a change in a list and refresh.
+          No recorded changes yet. Make a change in a list and it'll show up here.
         </p>
       )}
 

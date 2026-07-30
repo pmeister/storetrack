@@ -49,6 +49,18 @@ create table if not exists list_items (
   created_at timestamptz not null default now()
 );
 
+-- append-only log behind the Activity screen, filled by the log_activity
+-- trigger below
+create table if not exists activity_events (
+  id bigserial primary key,
+  household_id uuid not null references households on delete cascade,
+  op text not null,
+  table_name text not null,
+  record jsonb,
+  old_record jsonb,
+  at timestamptz not null
+);
+
 -- stamp the acting user on every insert/update (delete attribution is the
 -- last editor, since a deleted row can't record its deleter)
 create or replace function set_updated_by() returns trigger
@@ -77,6 +89,48 @@ create index if not exists stores_household_idx on stores (household_id);
 create index if not exists sections_store_idx on sections (store_id);
 create index if not exists list_items_store_idx on list_items (store_id);
 create index if not exists list_items_household_idx on list_items (household_id);
+create index if not exists activity_events_household_idx
+  on activity_events (household_id, at desc);
+
+-- record every change into activity_events. Runs AFTER set_updated_by, so
+-- the captured row already carries the acting user.
+create or replace function log_activity() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare
+  v_household uuid;
+begin
+  if tg_op = 'DELETE' then
+    v_household := old.household_id;
+  else
+    v_household := new.household_id;
+  end if;
+
+  insert into activity_events (household_id, op, table_name, record, old_record, at)
+  values (
+    v_household,
+    tg_op,
+    tg_table_name,
+    case when tg_op = 'DELETE' then null else to_jsonb(new) end,
+    case when tg_op = 'INSERT' then null else to_jsonb(old) end,
+    now()
+  );
+  return null;
+end $$;
+
+drop trigger if exists log_activity_stores on stores;
+create trigger log_activity_stores
+  after insert or update or delete on stores
+  for each row execute function log_activity();
+
+drop trigger if exists log_activity_sections on sections;
+create trigger log_activity_sections
+  after insert or update or delete on sections
+  for each row execute function log_activity();
+
+drop trigger if exists log_activity_list_items on list_items;
+create trigger log_activity_list_items
+  after insert or update or delete on list_items
+  for each row execute function log_activity();
 
 -- ============================================================ helper
 
@@ -91,6 +145,7 @@ alter table profiles enable row level security;
 alter table stores enable row level security;
 alter table sections enable row level security;
 alter table list_items enable row level security;
+alter table activity_events enable row level security;
 
 drop policy if exists profiles_select on profiles;
 create policy profiles_select on profiles for select
@@ -123,6 +178,12 @@ drop policy if exists household_all on list_items;
 create policy household_all on list_items for all
   using (household_id = current_household_id())
   with check (household_id = current_household_id());
+
+-- Read-only to members: only the log_activity trigger writes here, so the
+-- log can't be forged or edited from the app.
+drop policy if exists activity_read on activity_events;
+create policy activity_read on activity_events for select
+  using (household_id = current_household_id());
 
 -- ============================================================ RPCs
 

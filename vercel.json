@@ -1,6 +1,3 @@
 {
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
-  "functions": {
-    "api/audit-log.ts": { "maxDuration": 30 }
-  }
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

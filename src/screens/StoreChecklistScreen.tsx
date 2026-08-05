@@ -82,8 +82,9 @@ export default function StoreChecklistScreen() {
     addItem.mutate(buildListItem(householdId, storeId!, items.data ?? [], { name, sectionId }))
   }
 
+  // Shell in App.tsx already reserves the tab bar, so only add the quick-add bar.
   return (
-    <div className="pb-[calc(var(--tab-bar-h)+var(--quick-add-h)+0.5rem)] pt-4">
+    <div className="pb-[var(--quick-add-h)] pt-4">
       <header className="flex items-center gap-2 px-4">
         <Link to="/" className="-ml-2 p-2 text-slate-400" aria-label="Back to stores">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-6 w-6">
@@ -269,7 +270,7 @@ export default function StoreChecklistScreen() {
       )}
 
       {notice && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(8.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4">
+        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--tab-bar-h)+var(--quick-add-h)+0.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4">
           <p className="rounded-full bg-slate-900/90 px-4 py-2 text-sm text-white shadow-lg">
             {notice}
           </p>

@@ -38,7 +38,7 @@ function Gate() {
 function Shell({ householdId }: { householdId: string }) {
   useRealtime(householdId)
   return (
-    <div className="mx-auto min-h-dvh max-w-lg pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+    <div className="mx-auto min-h-dvh max-w-lg pb-[calc(var(--tab-bar-h)+1rem+env(safe-area-inset-bottom))]">
       <Routes>
         <Route path="/" element={<StoresScreen />} />
         <Route path="/stores/:storeId" element={<StoreChecklistScreen />} />

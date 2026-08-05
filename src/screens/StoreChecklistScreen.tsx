@@ -83,7 +83,7 @@ export default function StoreChecklistScreen() {
   }
 
   return (
-    <div className="pb-40 pt-4">
+    <div className="pb-[calc(var(--tab-bar-h)+var(--quick-add-h)+0.5rem)] pt-4">
       <header className="flex items-center gap-2 px-4">
         <Link to="/" className="-ml-2 p-2 text-slate-400" aria-label="Back to stores">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-6 w-6">

@@ -58,13 +58,14 @@ export default function QuickAddBar({ sections, suggestions, selected, onSelectS
   function chip(id: string | null, label: string) {
     return (
       <button
+        key={id ?? 'unsorted'}
         type="button"
         ref={(el) => {
           if (el) chipRefs.current.set(id ?? 'unsorted', el)
           else chipRefs.current.delete(id ?? 'unsorted')
         }}
         onClick={() => onSelectSection(id)}
-        className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+        className={`shrink-0 rounded-full px-3 py-1 text-base font-medium ${
           selected.id === id ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'
         }`}
       >
@@ -74,7 +75,7 @@ export default function QuickAddBar({ sections, suggestions, selected, onSelectS
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 border-t border-slate-200 bg-white/95 backdrop-blur">
+    <div className="fixed inset-x-0 bottom-[calc(var(--tab-bar-h)+env(safe-area-inset-bottom))] z-10 border-t border-slate-200 bg-white/95 backdrop-blur">
       <div className="relative mx-auto max-w-lg px-3 py-2">
         {matches.length > 0 && (
           <ul className="absolute inset-x-3 bottom-full mb-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">

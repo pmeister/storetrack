@@ -17,12 +17,22 @@ html {
   --text-3xl: calc(1.875rem * var(--font-scale));
 }
 
+/* Base text lands at 16 / 20 / 24px. */
 html[data-font-size='medium'] {
-  --font-scale: 1.125;
+  --font-scale: 1.25;
 }
 
 html[data-font-size='large'] {
-  --font-scale: 1.25;
+  --font-scale: 1.5;
+}
+
+/* Heights of the two fixed bars at the bottom, for the screens that reserve
+   space under them. Icons, padding, and borders are a fixed rem; only the text
+   scales. At --font-scale: 1 these come out to the 3.5rem / 6.125rem the
+   offsets were hand-tuned to, so Small is unchanged. */
+html {
+  --tab-bar-h: calc(2.5rem + 1rem * var(--font-scale));
+  --quick-add-h: calc(3.125rem + 3rem * var(--font-scale));
 }
 
 body {

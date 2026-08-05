@@ -28,4 +28,8 @@ html[data-font-size='large'] {
 body {
   @apply bg-slate-50 text-slate-900 antialiased;
   overscroll-behavior-y: none;
+  /* Scales text that inherits rather than using a text-* utility (item names,
+     store names, buttons). On body, not html, so 1rem is unchanged and the
+     text-* utilities above scale once rather than twice. */
+  font-size: calc(1rem * var(--font-scale));
 }

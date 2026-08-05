@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth, useHouseholdId } from '../hooks/useAuth'
 import { useMembers, useUpdateNickname } from '../hooks/useMembers'
 import { effectiveNickname } from '../lib/nicknames'
+import { FONT_SIZES, applyFontSize, readFontSize } from '../lib/fontSize'
 import type { Household } from '../lib/types'
 
 export default function SettingsScreen() {
@@ -14,6 +15,7 @@ export default function SettingsScreen() {
   const [copied, setCopied] = useState(false)
   const [nickname, setNickname] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const [fontSize, setFontSize] = useState(readFontSize)
 
   const household = useQuery({
     queryKey: ['household', householdId],
@@ -118,6 +120,33 @@ export default function SettingsScreen() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Text size
+        </h2>
+        <p className="mt-1 text-xs text-slate-400">Applies to all text in the app.</p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {FONT_SIZES.map((size) => (
+            <button
+              key={size}
+              type="button"
+              aria-pressed={fontSize === size}
+              onClick={() => {
+                applyFontSize(size)
+                setFontSize(size)
+              }}
+              className={`rounded-xl border py-2.5 text-sm font-semibold capitalize ${
+                fontSize === size
+                  ? 'border-emerald-600 bg-emerald-600 text-white'
+                  : 'border-slate-200 bg-white text-slate-700 active:bg-slate-50'
+              }`}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
       </section>
 
       <button

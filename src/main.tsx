@@ -6,6 +6,9 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import './index.css'
 import App from './App.tsx'
+import { applyFontSize, readFontSize } from './lib/fontSize'
+
+applyFontSize(readFontSize())
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000
 
